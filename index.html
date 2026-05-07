@@ -1,0 +1,1889 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MysteryOps — Box Management System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ===== CSS VARIABLES ===== */
+:root {
+  --bg: #0d0e12;
+  --bg2: #13151c;
+  --bg3: #1a1d27;
+  --surface: #1f2232;
+  --surface2: #262a3d;
+  --border: #2e3350;
+  --border2: #3a4060;
+  --accent: #ff6b35;
+  --accent2: #ff9a6c;
+  --accent-dim: rgba(255,107,53,0.12);
+  --teal: #00d4aa;
+  --teal-dim: rgba(0,212,170,0.12);
+  --purple: #9b6dff;
+  --purple-dim: rgba(155,109,255,0.12);
+  --yellow: #ffd166;
+  --yellow-dim: rgba(255,209,102,0.12);
+  --red: #ff4757;
+  --red-dim: rgba(255,71,87,0.12);
+  --green: #2ed573;
+  --green-dim: rgba(46,213,115,0.12);
+  --text: #e8eaf0;
+  --text2: #9fa3b8;
+  --text3: #5f6480;
+  --mono: 'Space Mono', monospace;
+  --sans: 'Syne', sans-serif;
+  --radius: 8px;
+  --radius2: 12px;
+  --shadow: 0 4px 24px rgba(0,0,0,0.4);
+  --shadow2: 0 8px 40px rgba(0,0,0,0.6);
+}
+
+/* ===== RESET & BASE ===== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 14px; scroll-behavior: smooth; }
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+button { font-family: var(--sans); cursor: pointer; border: none; outline: none; }
+input, select, textarea { font-family: var(--sans); outline: none; }
+a { text-decoration: none; color: inherit; }
+
+/* ===== SCROLLBAR ===== */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg2); }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+/* ===== LAYOUT ===== */
+.app { display: flex; height: 100vh; overflow: hidden; }
+
+/* ===== SIDEBAR ===== */
+.sidebar {
+  width: 220px;
+  min-width: 220px;
+  background: var(--bg2);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  z-index: 100;
+}
+.logo {
+  padding: 20px 18px;
+  border-bottom: 1px solid var(--border);
+}
+.logo-mark {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.logo-icon {
+  width: 32px; height: 32px;
+  background: var(--accent);
+  border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+}
+.logo-text {
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+  line-height: 1.1;
+}
+.logo-sub { font-size: 9px; color: var(--text3); font-family: var(--mono); letter-spacing: 1px; text-transform: uppercase; }
+.nav { flex: 1; padding: 12px 0; overflow-y: auto; }
+.nav-section-label {
+  font-size: 9px;
+  font-family: var(--mono);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text3);
+  padding: 12px 18px 6px;
+}
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 18px;
+  cursor: pointer;
+  border-radius: 0;
+  transition: all 0.15s;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text2);
+  position: relative;
+}
+.nav-item:hover { background: var(--bg3); color: var(--text); }
+.nav-item.active { background: var(--accent-dim); color: var(--accent); }
+.nav-item.active::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  background: var(--accent);
+  border-radius: 0 2px 2px 0;
+}
+.nav-icon { width: 16px; text-align: center; font-size: 14px; }
+.nav-badge {
+  margin-left: auto;
+  background: var(--red);
+  color: white;
+  font-size: 9px;
+  font-family: var(--mono);
+  padding: 2px 5px;
+  border-radius: 10px;
+  min-width: 18px;
+  text-align: center;
+}
+.sidebar-footer {
+  padding: 14px 18px;
+  border-top: 1px solid var(--border);
+  font-size: 11px;
+  color: var(--text3);
+  font-family: var(--mono);
+}
+
+/* ===== MAIN AREA ===== */
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.topbar {
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  padding: 0 24px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-shrink: 0;
+}
+.topbar-title {
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+}
+.topbar-subtitle { font-size: 11px; color: var(--text3); font-family: var(--mono); }
+.topbar-actions { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+
+.content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+}
+
+/* ===== PAGES ===== */
+.page { display: none; }
+.page.active { display: block; }
+
+/* ===== BUTTONS ===== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: var(--radius);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  transition: all 0.15s;
+  cursor: pointer;
+  font-family: var(--sans);
+}
+.btn-primary { background: var(--accent); color: white; }
+.btn-primary:hover { background: var(--accent2); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(255,107,53,0.35); }
+.btn-secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border2); }
+.btn-secondary:hover { background: var(--border); color: var(--text); }
+.btn-ghost { background: transparent; color: var(--text2); border: 1px solid var(--border); }
+.btn-ghost:hover { background: var(--surface); color: var(--text); }
+.btn-success { background: var(--green); color: #0d1a0f; }
+.btn-success:hover { filter: brightness(1.1); }
+.btn-danger { background: var(--red); color: white; }
+.btn-danger:hover { filter: brightness(1.1); }
+.btn-sm { padding: 5px 10px; font-size: 11px; }
+.btn-icon { padding: 7px; border-radius: var(--radius); background: var(--surface); border: 1px solid var(--border); color: var(--text2); transition: all 0.15s; font-size: 13px; }
+.btn-icon:hover { background: var(--surface2); color: var(--text); border-color: var(--border2); }
+
+/* ===== CARDS ===== */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius2);
+  overflow: hidden;
+}
+.card-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.card-title { font-size: 14px; font-weight: 700; }
+.card-body { padding: 20px; }
+
+/* ===== STAT CARDS ===== */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius2);
+  padding: 18px 20px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+.stat-card:hover { border-color: var(--border2); }
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+}
+.stat-card.orange::before { background: var(--accent); }
+.stat-card.teal::before { background: var(--teal); }
+.stat-card.purple::before { background: var(--purple); }
+.stat-card.yellow::before { background: var(--yellow); }
+.stat-card.red::before { background: var(--red); }
+.stat-card.green::before { background: var(--green); }
+.stat-label { font-size: 10px; font-family: var(--mono); letter-spacing: 1px; text-transform: uppercase; color: var(--text3); margin-bottom: 8px; }
+.stat-value { font-size: 26px; font-weight: 800; letter-spacing: -1px; line-height: 1; }
+.stat-sub { font-size: 11px; color: var(--text3); margin-top: 4px; font-family: var(--mono); }
+.stat-icon { position: absolute; right: 16px; top: 18px; font-size: 22px; opacity: 0.15; }
+
+/* ===== TABLES ===== */
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; }
+th {
+  font-size: 10px;
+  font-family: var(--mono);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text3);
+  padding: 10px 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg2);
+  white-space: nowrap;
+}
+td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+  vertical-align: middle;
+}
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: var(--bg3); }
+.td-mono { font-family: var(--mono); font-size: 11px; }
+
+/* ===== BADGES ===== */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: 700;
+  font-family: var(--mono);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+.badge-orange { background: var(--accent-dim); color: var(--accent); }
+.badge-teal { background: var(--teal-dim); color: var(--teal); }
+.badge-purple { background: var(--purple-dim); color: var(--purple); }
+.badge-yellow { background: var(--yellow-dim); color: var(--yellow); }
+.badge-red { background: var(--red-dim); color: var(--red); }
+.badge-green { background: var(--green-dim); color: var(--green); }
+.badge-gray { background: var(--surface2); color: var(--text3); }
+
+/* ===== FORMS ===== */
+.form-group { margin-bottom: 16px; }
+.form-label { font-size: 11px; font-weight: 700; color: var(--text2); margin-bottom: 6px; display: block; letter-spacing: 0.3px; }
+.form-control {
+  width: 100%;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 8px 12px;
+  color: var(--text);
+  font-size: 13px;
+  font-family: var(--sans);
+  transition: border-color 0.15s;
+}
+.form-control:focus { border-color: var(--accent); }
+.form-control::placeholder { color: var(--text3); }
+select.form-control { cursor: pointer; }
+textarea.form-control { resize: vertical; min-height: 80px; }
+.form-hint { font-size: 10px; color: var(--text3); margin-top: 4px; font-family: var(--mono); }
+.form-row { display: grid; gap: 12px; }
+.form-row-2 { grid-template-columns: 1fr 1fr; }
+.form-row-3 { grid-template-columns: 1fr 1fr 1fr; }
+
+/* ===== SEARCH BAR ===== */
+.search-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0 12px;
+  flex: 1;
+}
+.search-bar input {
+  background: none;
+  border: none;
+  color: var(--text);
+  font-size: 13px;
+  font-family: var(--sans);
+  padding: 8px 0;
+  flex: 1;
+}
+.search-bar input::placeholder { color: var(--text3); }
+.search-icon { color: var(--text3); font-size: 14px; }
+
+/* ===== FILTER ROW ===== */
+.filter-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.filter-select {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 7px 10px;
+  color: var(--text);
+  font-size: 12px;
+  font-family: var(--sans);
+  cursor: pointer;
+}
+.filter-select:focus { border-color: var(--accent); outline: none; }
+
+/* ===== BUILD CAPACITY METERS ===== */
+.capacity-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius2);
+  padding: 16px 20px;
+  margin-bottom: 12px;
+  transition: border-color 0.2s;
+}
+.capacity-card:hover { border-color: var(--border2); }
+.capacity-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.capacity-name { font-size: 14px; font-weight: 700; }
+.capacity-meta { font-size: 10px; color: var(--text3); font-family: var(--mono); margin-top: 2px; }
+.capacity-count {
+  font-size: 28px;
+  font-weight: 800;
+  font-family: var(--mono);
+  letter-spacing: -1px;
+  text-align: right;
+}
+.capacity-count-label { font-size: 9px; color: var(--text3); font-family: var(--mono); letter-spacing: 1px; text-transform: uppercase; text-align: right; }
+.meter-track {
+  height: 8px;
+  background: var(--bg2);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+.meter-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.6s cubic-bezier(0.34,1.56,0.64,1);
+}
+.meter-green { background: linear-gradient(90deg, var(--teal), var(--green)); }
+.meter-yellow { background: linear-gradient(90deg, var(--yellow), var(--accent2)); }
+.meter-red { background: linear-gradient(90deg, var(--red), #ff6b6b); }
+.capacity-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 10px;
+  color: var(--text3);
+  font-family: var(--mono);
+}
+.limiting-item { color: var(--yellow); }
+
+/* ===== VALUE COMPLIANCE ===== */
+.value-bars { display: flex; gap: 8px; align-items: center; }
+.value-pill {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-family: var(--mono);
+  font-weight: 700;
+}
+.value-pill-retail { background: var(--teal-dim); color: var(--teal); }
+.value-pill-market { background: var(--purple-dim); color: var(--purple); }
+.value-pill.warn { background: var(--red-dim); color: var(--red); }
+
+/* ===== MODAL ===== */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.75);
+  z-index: 1000;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  backdrop-filter: blur(4px);
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius2);
+  width: 100%;
+  max-width: 680px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadow2);
+  animation: modalIn 0.2s cubic-bezier(0.34,1.56,0.64,1);
+}
+@keyframes modalIn {
+  from { opacity: 0; transform: scale(0.94) translateY(10px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+.modal-header {
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+.modal-title { font-size: 16px; font-weight: 800; }
+.modal-close { background: var(--surface); border: 1px solid var(--border); color: var(--text2); width: 28px; height: 28px; border-radius: 6px; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+.modal-close:hover { background: var(--red-dim); color: var(--red); border-color: var(--red); }
+.modal-body { padding: 22px; overflow-y: auto; flex: 1; }
+.modal-footer { padding: 16px 22px; border-top: 1px solid var(--border); display: flex; gap: 8px; justify-content: flex-end; flex-shrink: 0; }
+
+/* ===== ALERT/WARNING ===== */
+.alert {
+  padding: 10px 14px;
+  border-radius: var(--radius);
+  font-size: 12px;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.alert-icon { font-size: 14px; flex-shrink: 0; margin-top: 1px; }
+.alert-warn { background: var(--yellow-dim); border: 1px solid rgba(255,209,102,0.2); color: var(--yellow); }
+.alert-danger { background: var(--red-dim); border: 1px solid rgba(255,71,87,0.2); color: var(--red); }
+.alert-success { background: var(--green-dim); border: 1px solid rgba(46,213,115,0.2); color: var(--green); }
+.alert-info { background: var(--accent-dim); border: 1px solid rgba(255,107,53,0.2); color: var(--accent2); }
+
+/* ===== TABS ===== */
+.tabs { display: flex; gap: 2px; padding: 4px; background: var(--bg3); border-radius: var(--radius); margin-bottom: 20px; }
+.tab {
+  flex: 1; padding: 7px 12px; border-radius: 6px; font-size: 12px; font-weight: 700;
+  color: var(--text3); cursor: pointer; transition: all 0.15s; text-align: center;
+  background: none; border: none;
+}
+.tab.active { background: var(--surface2); color: var(--text); }
+.tab:hover:not(.active) { color: var(--text2); }
+
+/* ===== COMPONENT LIST IN BOX TEMPLATE ===== */
+.component-list { display: flex; flex-direction: column; gap: 8px; }
+.component-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 8px 12px;
+}
+.component-row .comp-name { flex: 1; font-size: 12px; font-weight: 600; }
+.component-row .comp-qty { width: 60px; }
+.component-row .comp-val { font-size: 11px; font-family: var(--mono); color: var(--text3); width: 80px; text-align: right; }
+.component-row .comp-remove { color: var(--text3); cursor: pointer; transition: color 0.15s; background: none; border: none; font-size: 14px; }
+.component-row .comp-remove:hover { color: var(--red); }
+
+/* ===== HISTORY LOG ===== */
+.log-list { display: flex; flex-direction: column; gap: 8px; }
+.log-item {
+  display: flex;
+  gap: 12px;
+  padding: 10px 14px;
+  background: var(--bg3);
+  border-radius: var(--radius);
+  border-left: 3px solid var(--border2);
+  font-size: 12px;
+}
+.log-item.log-add { border-color: var(--green); }
+.log-item.log-remove { border-color: var(--red); }
+.log-item.log-approve { border-color: var(--teal); }
+.log-item.log-pack { border-color: var(--purple); }
+.log-time { font-family: var(--mono); font-size: 10px; color: var(--text3); white-space: nowrap; }
+.log-msg { flex: 1; color: var(--text2); }
+
+/* ===== PROGRESS SECTION ===== */
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+.section-title { font-size: 16px; font-weight: 800; letter-spacing: -0.3px; }
+.section-sub { font-size: 11px; color: var(--text3); font-family: var(--mono); }
+
+/* ===== REPORTING ===== */
+.report-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.chart-placeholder {
+  background: var(--bg3);
+  border-radius: var(--radius);
+  height: 140px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 8px;
+  padding: 16px;
+  overflow: hidden;
+}
+.bar-chart-bar {
+  flex: 1;
+  border-radius: 4px 4px 0 0;
+  max-width: 40px;
+  transition: height 0.5s;
+  position: relative;
+  cursor: pointer;
+}
+.bar-chart-bar:hover { filter: brightness(1.2); }
+
+/* ===== EMPTY STATE ===== */
+.empty-state {
+  text-align: center;
+  padding: 48px 24px;
+  color: var(--text3);
+}
+.empty-icon { font-size: 40px; margin-bottom: 12px; opacity: 0.4; }
+.empty-title { font-size: 14px; font-weight: 700; color: var(--text2); margin-bottom: 6px; }
+.empty-sub { font-size: 12px; }
+
+/* ===== BOX DETAIL PANEL ===== */
+.detail-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+.detail-row:last-child { border-bottom: none; }
+.detail-key { color: var(--text3); }
+.detail-val { font-weight: 600; font-family: var(--mono); font-size: 12px; }
+
+/* ===== PACKING CONTROLS ===== */
+.pack-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.pack-input {
+  width: 70px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 6px 10px;
+  color: var(--text);
+  font-size: 13px;
+  font-family: var(--mono);
+  text-align: center;
+}
+
+/* ===== STOCK INDICATORS ===== */
+.stock-indicator { display: flex; align-items: center; gap: 5px; }
+.stock-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.stock-dot-green { background: var(--green); }
+.stock-dot-yellow { background: var(--yellow); }
+.stock-dot-red { background: var(--red); }
+
+/* ===== TOAST ===== */
+.toast-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.toast {
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  padding: 12px 16px;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 260px;
+  box-shadow: var(--shadow);
+  animation: toastIn 0.25s cubic-bezier(0.34,1.56,0.64,1);
+}
+@keyframes toastIn {
+  from { opacity: 0; transform: translateX(40px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+.toast-success { border-color: var(--green); }
+.toast-error { border-color: var(--red); }
+.toast-warn { border-color: var(--yellow); }
+.toast-icon { font-size: 16px; }
+
+/* ===== TIER RIBBON ===== */
+.tier-ribbon {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  font-family: var(--mono);
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.tier-bronze { background: rgba(176,100,60,0.2); color: #cd7f32; }
+.tier-silver { background: rgba(192,192,192,0.15); color: #c0c0c0; }
+.tier-gold { background: rgba(255,215,0,0.15); color: #ffd700; }
+.tier-platinum { background: rgba(155,109,255,0.15); color: var(--purple); }
+
+/* ===== RULES PANEL ===== */
+.rules-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.rule-item {
+  background: var(--bg3);
+  border-radius: var(--radius);
+  padding: 12px;
+}
+.rule-label { font-size: 10px; font-family: var(--mono); color: var(--text3); margin-bottom: 6px; letter-spacing: 0.5px; text-transform: uppercase; }
+.rule-value { font-size: 14px; font-weight: 700; font-family: var(--mono); }
+
+/* ===== CSV EXPORT ===== */
+.export-options { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .sidebar { width: 180px; min-width: 180px; }
+  .stats-grid { grid-template-columns: 1fr 1fr; }
+  .form-row-3 { grid-template-columns: 1fr 1fr; }
+  .report-grid { grid-template-columns: 1fr; }
+  .rules-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 600px) {
+  .sidebar { display: none; }
+  .stats-grid { grid-template-columns: 1fr; }
+}
+
+/* ===== TIER COLORS ON STATUS ===== */
+.status-draft { color: var(--text3); }
+.status-approved { color: var(--teal); }
+.status-active { color: var(--green); }
+.status-paused { color: var(--yellow); }
+
+.inline-edit { cursor: pointer; border-bottom: 1px dashed var(--border2); }
+
+/* ===== SCROLLABLE CONTENT PANEL ===== */
+.scroll-panel { max-height: 320px; overflow-y: auto; padding-right: 4px; }
+
+.sep { height: 1px; background: var(--border); margin: 20px 0; }
+
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+
+/* ===== CAPACITY COLOR CLASS ===== */
+.cap-high { color: var(--green); }
+.cap-med { color: var(--yellow); }
+.cap-low { color: var(--red); }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="logo">
+      <div class="logo-mark">
+        <div class="logo-icon">📦</div>
+        <div>
+          <div class="logo-text">MysteryOps</div>
+          <div class="logo-sub">Box Management</div>
+        </div>
+      </div>
+    </div>
+    <div class="nav">
+      <div class="nav-section-label">Overview</div>
+      <div class="nav-item active" onclick="navigate('dashboard')">
+        <span class="nav-icon">⚡</span> Dashboard
+      </div>
+      <div class="nav-section-label">Products</div>
+      <div class="nav-item" onclick="navigate('inventory')">
+        <span class="nav-icon">🗃️</span> Inventory
+      </div>
+      <div class="nav-section-label">Boxes</div>
+      <div class="nav-item" onclick="navigate('templates')">
+        <span class="nav-icon">📋</span> Box Templates
+      </div>
+      <div class="nav-item" onclick="navigate('packing')">
+        <span class="nav-icon">📬</span> Pack Boxes
+      </div>
+      <div class="nav-section-label">Admin</div>
+      <div class="nav-item" onclick="navigate('rules')">
+        <span class="nav-icon">⚙️</span> Rules & Config
+      </div>
+      <div class="nav-item" onclick="navigate('history')">
+        <span class="nav-icon">🕐</span> History Log
+      </div>
+      <div class="nav-item" onclick="navigate('reports')">
+        <span class="nav-icon">📊</span> Reports
+      </div>
+    </div>
+    <div class="sidebar-footer">
+      v1.0 — MysteryOps
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <div>
+        <div class="topbar-title" id="topbar-title">Dashboard</div>
+        <div class="topbar-subtitle" id="topbar-sub">Live overview</div>
+      </div>
+      <div class="topbar-actions" id="topbar-actions"></div>
+    </div>
+    <div class="content" id="content">
+      <!-- Pages injected here -->
+    </div>
+  </div>
+</div>
+
+<!-- MODALS -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal" id="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-title">Modal</div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+    <div class="modal-footer" id="modal-footer"></div>
+  </div>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-container" id="toast-container"></div>
+
+<script>
+// ===== DATA STORE =====
+const DB = {
+  inventory: [
+    { id: 'INV001', sku: 'PKM-BASE-EN', name: 'Pokémon Scarlet & Violet Booster Pack', category: 'TCG Packs', condition: 'NM', qty: 240, cost: 4.50, market: 6.20 },
+    { id: 'INV002', sku: 'PKM-PROMO-V', name: 'Charizard V Promo Card', category: 'Singles', condition: 'NM', qty: 48, cost: 8.00, market: 18.50 },
+    { id: 'INV003', sku: 'MTG-DRAFT-BRO', name: 'MTG Brothers War Draft Booster', category: 'TCG Packs', condition: 'NM', qty: 180, cost: 3.75, market: 4.80 },
+    { id: 'INV004', sku: 'MTG-SINGLE-002', name: 'Force of Will (MP)', category: 'Singles', condition: 'MP', qty: 12, cost: 35.00, market: 52.00 },
+    { id: 'INV005', sku: 'YGO-PACK-PHHY', name: 'YuGiOh Phantom Nightmare Booster', category: 'TCG Packs', condition: 'NM', qty: 300, cost: 2.80, market: 4.20 },
+    { id: 'INV006', sku: 'SLEEVE-100', name: 'Dragon Shield Sleeves (100ct)', category: 'Accessories', condition: 'NM', qty: 85, cost: 9.00, market: 12.50 },
+    { id: 'INV007', sku: 'TOPLOADER-25', name: 'Ultra Pro Toploaders (25ct)', category: 'Accessories', condition: 'NM', qty: 120, cost: 3.50, market: 5.00 },
+    { id: 'INV008', sku: 'PKM-ELITE-TR', name: 'Pokémon Elite Trainer Box', category: 'Sets', condition: 'NM', qty: 22, cost: 42.00, market: 58.00 },
+    { id: 'INV009', sku: 'MTG-BUNDLE', name: 'MTG Play Booster Bundle', category: 'Sets', condition: 'NM', qty: 30, cost: 28.00, market: 38.50 },
+    { id: 'INV010', sku: 'DICE-SET-7', name: 'Premium Dice Set (7pc)', category: 'Accessories', condition: 'NM', qty: 60, cost: 4.00, market: 7.00 },
+  ],
+
+  templates: [
+    {
+      id: 'BOX001',
+      name: 'Pokémon Starter Bundle',
+      theme: 'Pokémon',
+      tier: 'silver',
+      targetCustomer: 'New players / Collectors',
+      status: 'active',
+      components: [
+        { inventoryId: 'INV001', qty: 3 },
+        { inventoryId: 'INV007', qty: 1 },
+      ],
+      salePrice: 28.00,
+      minRetailValue: 20.00,
+      maxMarketValue: 45.00,
+    },
+    {
+      id: 'BOX002',
+      name: 'TCG Mega Mix',
+      theme: 'Multi-Game',
+      tier: 'gold',
+      targetCustomer: 'Intermediate collectors',
+      status: 'approved',
+      components: [
+        { inventoryId: 'INV001', qty: 2 },
+        { inventoryId: 'INV003', qty: 2 },
+        { inventoryId: 'INV005', qty: 2 },
+        { inventoryId: 'INV006', qty: 1 },
+      ],
+      salePrice: 55.00,
+      minRetailValue: 30.00,
+      maxMarketValue: 80.00,
+    },
+    {
+      id: 'BOX003',
+      name: 'Singles Collector\'s Box',
+      theme: 'Premium Singles',
+      tier: 'platinum',
+      targetCustomer: 'Serious collectors',
+      status: 'draft',
+      components: [
+        { inventoryId: 'INV002', qty: 1 },
+        { inventoryId: 'INV004', qty: 1 },
+        { inventoryId: 'INV007', qty: 1 },
+      ],
+      salePrice: 85.00,
+      minRetailValue: 40.00,
+      maxMarketValue: 120.00,
+    },
+    {
+      id: 'BOX004',
+      name: 'Budget Beginner Box',
+      theme: 'Mixed TCG',
+      tier: 'bronze',
+      targetCustomer: 'Kids / First-timers',
+      status: 'active',
+      components: [
+        { inventoryId: 'INV005', qty: 3 },
+        { inventoryId: 'INV010', qty: 1 },
+      ],
+      salePrice: 18.00,
+      minRetailValue: 12.00,
+      maxMarketValue: 30.00,
+    },
+  ],
+
+  rules: {
+    minRetailValueDefault: 15.00,
+    maxMarketValueDefault: 100.00,
+    lowStockThreshold: 20,
+    criticalStockThreshold: 5,
+  },
+
+  history: [
+    { id: 1, type: 'approve', ts: Date.now() - 86400000 * 2, msg: 'BOX002 "TCG Mega Mix" approved by Admin' },
+    { id: 2, type: 'add', ts: Date.now() - 86400000, msg: 'Added 50x Pokémon Scarlet & Violet Booster Pack to inventory' },
+    { id: 3, type: 'pack', ts: Date.now() - 3600000 * 5, msg: 'Packed 10x Pokémon Starter Bundle — inventory adjusted' },
+    { id: 4, type: 'add', ts: Date.now() - 3600000 * 2, msg: 'Added product INV010 Premium Dice Set to catalog' },
+  ],
+};
+
+// ===== UTILITY FUNCTIONS =====
+let currentPage = 'dashboard';
+
+function $(sel) { return document.querySelector(sel); }
+function $$(sel) { return document.querySelectorAll(sel); }
+
+function fmt(n, dec=2) {
+  return Number(n).toLocaleString('en-US', { minimumFractionDigits: dec, maximumFractionDigits: dec });
+}
+function fmtMoney(n) { return '$' + fmt(n, 2); }
+
+function getItem(id) { return DB.inventory.find(i => i.id === id); }
+function getTemplate(id) { return DB.templates.find(t => t.id === id); }
+
+function calcBoxValues(tmpl) {
+  let retail = 0, market = 0;
+  for (const c of tmpl.components) {
+    const item = getItem(c.inventoryId);
+    if (!item) continue;
+    retail += item.cost * c.qty;
+    market += item.market * c.qty;
+  }
+  return { retail, market };
+}
+
+function calcBuildable(tmpl) {
+  if (!tmpl.components.length) return { count: 0, limiting: null };
+  let min = Infinity, limitingItem = null;
+  for (const c of tmpl.components) {
+    const item = getItem(c.inventoryId);
+    if (!item) return { count: 0, limiting: 'Missing component' };
+    const ratio = Math.floor(item.qty / c.qty);
+    if (ratio < min) { min = ratio; limitingItem = item.name; }
+  }
+  return { count: min === Infinity ? 0 : min, limiting: limitingItem };
+}
+
+function valueCompliance(tmpl) {
+  const { retail, market } = calcBoxValues(tmpl);
+  const issues = [];
+  if (retail < tmpl.minRetailValue) issues.push({ type: 'low-retail', msg: `Retail value ${fmtMoney(retail)} below minimum ${fmtMoney(tmpl.minRetailValue)}` });
+  if (market > tmpl.maxMarketValue) issues.push({ type: 'high-market', msg: `Market value ${fmtMoney(market)} exceeds maximum ${fmtMoney(tmpl.maxMarketValue)}` });
+  return issues;
+}
+
+function statusBadge(status) {
+  const map = { draft: 'gray', approved: 'teal', active: 'green', paused: 'yellow' };
+  return `<span class="badge badge-${map[status]||'gray'}">${status}</span>`;
+}
+
+function tierRibbon(tier) {
+  return `<span class="tier-ribbon tier-${tier}">${tier}</span>`;
+}
+
+function addHistory(type, msg) {
+  DB.history.unshift({ id: Date.now(), type, ts: Date.now(), msg });
+}
+
+// ===== TOAST =====
+function toast(msg, type = 'success') {
+  const icons = { success: '✅', error: '❌', warn: '⚠️', info: 'ℹ️' };
+  const el = document.createElement('div');
+  el.className = `toast toast-${type}`;
+  el.innerHTML = `<span class="toast-icon">${icons[type]||'ℹ️'}</span><span>${msg}</span>`;
+  $('#toast-container').appendChild(el);
+  setTimeout(() => el.style.opacity = '0', 2800);
+  setTimeout(() => el.remove(), 3100);
+}
+
+// ===== MODAL =====
+function openModal(title, body, footer='') {
+  $('#modal-title').textContent = title;
+  $('#modal-body').innerHTML = body;
+  $('#modal-footer').innerHTML = footer;
+  $('#modal-overlay').classList.add('open');
+}
+function closeModal() { $('#modal-overlay').classList.remove('open'); }
+$('#modal-overlay').addEventListener('click', e => { if (e.target === $('#modal-overlay')) closeModal(); });
+
+// ===== NAVIGATION =====
+function navigate(page) {
+  currentPage = page;
+  $$('.nav-item').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll(`.nav-item`).forEach(el => {
+    if (el.getAttribute('onclick')?.includes(page)) el.classList.add('active');
+  });
+  renderPage(page);
+}
+
+function renderPage(page) {
+  const titles = {
+    dashboard: ['Dashboard', 'Live overview'],
+    inventory: ['Inventory Catalog', 'SKU-level product management'],
+    templates: ['Box Templates', 'Mystery box configuration'],
+    packing: ['Pack Boxes', 'Assemble & deduct inventory'],
+    rules: ['Rules & Config', 'Value thresholds & settings'],
+    history: ['History Log', 'Audit trail for all changes'],
+    reports: ['Reports', 'Margins, capacity & usage analytics'],
+  };
+  const [title, sub] = titles[page] || ['', ''];
+  $('#topbar-title').textContent = title;
+  $('#topbar-sub').textContent = sub;
+  const renderers = {
+    dashboard: renderDashboard,
+    inventory: renderInventory,
+    templates: renderTemplates,
+    packing: renderPacking,
+    rules: renderRules,
+    history: renderHistory,
+    reports: renderReports,
+  };
+  if (renderers[page]) renderers[page]();
+}
+
+// ===== DASHBOARD =====
+function renderDashboard() {
+  const totalSKUs = DB.inventory.length;
+  const totalItems = DB.inventory.reduce((s,i) => s+i.qty, 0);
+  const totalRetailValue = DB.inventory.reduce((s,i) => s+i.cost*i.qty, 0);
+  const totalMarketValue = DB.inventory.reduce((s,i) => s+i.market*i.qty, 0);
+  const activeBoxes = DB.templates.filter(t => t.status === 'active' || t.status === 'approved').length;
+  const lowStock = DB.inventory.filter(i => i.qty <= DB.rules.lowStockThreshold).length;
+
+  // Build capacity cards
+  let capacityHTML = '';
+  for (const tmpl of DB.templates) {
+    const { count, limiting } = calcBuildable(tmpl);
+    const issues = valueCompliance(tmpl);
+    const { retail, market } = calcBoxValues(tmpl);
+    const maxCap = 100;
+    const pct = Math.min(100, (count / maxCap) * 100);
+    const meterClass = count >= 30 ? 'meter-green' : count >= 10 ? 'meter-yellow' : 'meter-red';
+    const capClass = count >= 30 ? 'cap-high' : count >= 10 ? 'cap-med' : 'cap-low';
+    const issueHTML = issues.length ? `<span class="badge badge-red">⚠ ${issues.length} issue${issues.length>1?'s':''}</span>` : `<span class="badge badge-green">✓ Compliant</span>`;
+    capacityHTML += `
+      <div class="capacity-card">
+        <div class="capacity-header">
+          <div>
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">${tierRibbon(tmpl.tier)} ${statusBadge(tmpl.status)}</div>
+            <div class="capacity-name">${tmpl.name}</div>
+            <div class="capacity-meta">Theme: ${tmpl.theme} · ${tmpl.components.length} components · ${issueHTML}</div>
+          </div>
+          <div>
+            <div class="capacity-count ${capClass}">${count}</div>
+            <div class="capacity-count-label">Buildable</div>
+          </div>
+        </div>
+        <div class="meter-track"><div class="meter-fill ${meterClass}" style="width:${pct}%"></div></div>
+        <div class="capacity-footer">
+          <div>Retail: <strong>${fmtMoney(retail)}</strong> · Market: <strong>${fmtMoney(market)}</strong> · Sale: <strong>${fmtMoney(tmpl.salePrice)}</strong></div>
+          ${limiting && count < maxCap ? `<div class="limiting-item">⚡ Limited by: ${limiting.length > 30 ? limiting.slice(0,28)+'…' : limiting}</div>` : '<div></div>'}
+        </div>
+      </div>`;
+  }
+
+  // Warnings
+  let warnings = '';
+  for (const tmpl of DB.templates) {
+    const issues = valueCompliance(tmpl);
+    const { count } = calcBuildable(tmpl);
+    if (issues.length) issues.forEach(iss => { warnings += `<div class="alert alert-danger"><span class="alert-icon">❌</span><strong>${tmpl.name}:</strong> ${iss.msg}</div>`; });
+    if (count === 0) warnings += `<div class="alert alert-warn"><span class="alert-icon">⚠️</span><strong>${tmpl.name}:</strong> Cannot be built — insufficient inventory</div>`;
+  }
+  DB.inventory.filter(i => i.qty <= DB.rules.criticalStockThreshold).forEach(i => {
+    warnings += `<div class="alert alert-danger"><span class="alert-icon">🔴</span>Critical stock: <strong>${i.name}</strong> — only ${i.qty} left</div>`;
+  });
+  DB.inventory.filter(i => i.qty > DB.rules.criticalStockThreshold && i.qty <= DB.rules.lowStockThreshold).forEach(i => {
+    warnings += `<div class="alert alert-warn"><span class="alert-icon">⚠️</span>Low stock: <strong>${i.name}</strong> — ${i.qty} remaining</div>`;
+  });
+
+  $('#topbar-actions').innerHTML = `<button class="btn btn-primary" onclick="navigate('templates')">+ New Box Template</button>`;
+  $('#content').innerHTML = `
+    <div class="stats-grid">
+      <div class="stat-card orange"><div class="stat-icon">🗃️</div><div class="stat-label">SKUs</div><div class="stat-value">${totalSKUs}</div><div class="stat-sub">${totalItems.toLocaleString()} total items</div></div>
+      <div class="stat-card teal"><div class="stat-icon">💰</div><div class="stat-label">Inventory Retail Value</div><div class="stat-value">${fmtMoney(totalRetailValue)}</div><div class="stat-sub">Cost basis</div></div>
+      <div class="stat-card purple"><div class="stat-icon">📈</div><div class="stat-label">Market Value</div><div class="stat-value">${fmtMoney(totalMarketValue)}</div><div class="stat-sub">TCGplayer est.</div></div>
+      <div class="stat-card yellow"><div class="stat-icon">📦</div><div class="stat-label">Box Templates</div><div class="stat-value">${DB.templates.length}</div><div class="stat-sub">${activeBoxes} active/approved</div></div>
+      <div class="stat-card ${lowStock ? 'red' : 'green'}"><div class="stat-icon">⚡</div><div class="stat-label">Low Stock SKUs</div><div class="stat-value">${lowStock}</div><div class="stat-sub">&le;${DB.rules.lowStockThreshold} threshold</div></div>
+    </div>
+
+    ${warnings ? `<div class="card" style="margin-bottom:24px;"><div class="card-header"><div class="card-title">⚠ Alerts & Warnings</div></div><div class="card-body">${warnings || '<div class="alert alert-success"><span class="alert-icon">✅</span>All boxes are compliant and buildable.</div>'}</div></div>` : ''}
+
+    <div class="section-header">
+      <div><div class="section-title">Build Capacity</div><div class="section-sub">Boxes buildable from current inventory</div></div>
+      <button class="btn btn-secondary btn-sm" onclick="navigate('packing')">Pack Boxes →</button>
+    </div>
+    ${capacityHTML}
+  `;
+}
+
+// ===== INVENTORY =====
+function renderInventory(filter='', catFilter='', condFilter='') {
+  let items = DB.inventory.filter(i => {
+    const q = filter.toLowerCase();
+    const matchQ = !q || i.name.toLowerCase().includes(q) || i.sku.toLowerCase().includes(q) || i.category.toLowerCase().includes(q);
+    const matchCat = !catFilter || i.category === catFilter;
+    const matchCond = !condFilter || i.condition === condFilter;
+    return matchQ && matchCat && matchCond;
+  });
+
+  const cats = [...new Set(DB.inventory.map(i => i.category))];
+  const conds = [...new Set(DB.inventory.map(i => i.condition))];
+
+  let rows = '';
+  for (const item of items) {
+    const stockDot = item.qty <= DB.rules.criticalStockThreshold ? 'red' : item.qty <= DB.rules.lowStockThreshold ? 'yellow' : 'green';
+    const margin = item.market - item.cost;
+    const marginPct = ((margin / item.cost) * 100).toFixed(0);
+    rows += `
+      <tr>
+        <td class="td-mono">${item.sku}</td>
+        <td style="font-weight:600;max-width:220px;">${item.name}</td>
+        <td><span class="badge badge-gray">${item.category}</span></td>
+        <td><span class="badge ${item.condition === 'NM' ? 'badge-green' : item.condition === 'MP' ? 'badge-yellow' : 'badge-red'}">${item.condition}</span></td>
+        <td>
+          <div class="stock-indicator">
+            <div class="stock-dot stock-dot-${stockDot}"></div>
+            <span class="td-mono">${item.qty}</span>
+          </div>
+        </td>
+        <td class="td-mono">${fmtMoney(item.cost)}</td>
+        <td class="td-mono" style="color:var(--purple);">${fmtMoney(item.market)}</td>
+        <td class="td-mono" style="color:${margin >= 0 ? 'var(--green)' : 'var(--red)'}">+${fmtMoney(margin)} (${marginPct}%)</td>
+        <td>
+          <div style="display:flex;gap:4px;">
+            <button class="btn-icon" onclick="editInventoryItem('${item.id}')" title="Edit">✏️</button>
+            <button class="btn-icon" onclick="adjustStock('${item.id}')" title="Adjust Stock">📥</button>
+            <button class="btn-icon" onclick="deleteInventoryItem('${item.id}')" title="Delete" style="color:var(--red);">🗑</button>
+          </div>
+        </td>
+      </tr>`;
+  }
+
+  $('#topbar-actions').innerHTML = `
+    <button class="btn btn-secondary btn-sm" onclick="exportInventoryCSV()">↓ Export CSV</button>
+    <button class="btn btn-primary" onclick="openAddProduct()">+ Add Product</button>`;
+
+  $('#content').innerHTML = `
+    <div class="filter-row">
+      <div class="search-bar" style="max-width:300px;">
+        <span class="search-icon">🔍</span>
+        <input type="text" placeholder="Search SKU, name, category…" id="inv-search" value="${filter}" oninput="renderInventory(this.value, document.getElementById('inv-cat').value, document.getElementById('inv-cond').value)">
+      </div>
+      <select class="filter-select" id="inv-cat" onchange="renderInventory(document.getElementById('inv-search').value, this.value, document.getElementById('inv-cond').value)">
+        <option value="">All Categories</option>
+        ${cats.map(c => `<option value="${c}" ${catFilter===c?'selected':''}>${c}</option>`).join('')}
+      </select>
+      <select class="filter-select" id="inv-cond" onchange="renderInventory(document.getElementById('inv-search').value, document.getElementById('inv-cat').value, this.value)">
+        <option value="">All Conditions</option>
+        ${conds.map(c => `<option value="${c}" ${condFilter===c?'selected':''}>${c}</option>`).join('')}
+      </select>
+      <div style="margin-left:auto;font-size:11px;color:var(--text3);font-family:var(--mono);">${items.length} / ${DB.inventory.length} items</div>
+    </div>
+    <div class="card">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>SKU</th><th>Product Name</th><th>Category</th><th>Cond.</th>
+              <th>Qty</th><th>Cost (Retail)</th><th>Market</th><th>Margin</th><th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>${rows || '<tr><td colspan="9"><div class="empty-state"><div class="empty-icon">🗃️</div><div class="empty-title">No products found</div></div></td></tr>'}</tbody>
+        </table>
+      </div>
+    </div>`;
+}
+
+function openAddProduct(id=null) {
+  const item = id ? getItem(id) : null;
+  const cats = [...new Set(DB.inventory.map(i => i.category)), 'TCG Packs', 'Singles', 'Accessories', 'Sets', 'Sealed Product'];
+  const uniqCats = [...new Set(cats)];
+  openModal(item ? 'Edit Product' : 'Add Product', `
+    <div class="form-row form-row-2">
+      <div class="form-group"><label class="form-label">SKU *</label><input class="form-control" id="f-sku" value="${item?.sku||''}" placeholder="e.g. PKM-PACK-001"></div>
+      <div class="form-group"><label class="form-label">Product Name *</label><input class="form-control" id="f-name" value="${item?.name||''}" placeholder="Full product name"></div>
+    </div>
+    <div class="form-row form-row-3">
+      <div class="form-group"><label class="form-label">Category</label>
+        <select class="form-control" id="f-cat">
+          ${uniqCats.map(c => `<option ${item?.category===c?'selected':''}>${c}</option>`).join('')}
+        </select>
+      </div>
+      <div class="form-group"><label class="form-label">Condition</label>
+        <select class="form-control" id="f-cond">
+          ${['NM','LP','MP','HP','DMG'].map(c => `<option ${item?.condition===c?'selected':''}>${c}</option>`).join('')}
+        </select>
+      </div>
+      <div class="form-group"><label class="form-label">Qty on Hand</label><input class="form-control" id="f-qty" type="number" min="0" value="${item?.qty||0}"></div>
+    </div>
+    <div class="form-row form-row-2">
+      <div class="form-group">
+        <label class="form-label">Purchase Cost (Retail Value) *</label>
+        <input class="form-control" id="f-cost" type="number" min="0" step="0.01" value="${item?.cost||''}" placeholder="0.00">
+        <div class="form-hint">What you paid for this item</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">TCGplayer Market Value *</label>
+        <input class="form-control" id="f-market" type="number" min="0" step="0.01" value="${item?.market||''}" placeholder="0.00">
+        <div class="form-hint">Current market sell price</div>
+      </div>
+    </div>
+  `, `
+    <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+    <button class="btn btn-primary" onclick="saveProduct('${id||''}')">Save Product</button>
+  `);
+}
+
+function editInventoryItem(id) { openAddProduct(id); }
+
+function saveProduct(id) {
+  const sku = $('#f-sku').value.trim();
+  const name = $('#f-name').value.trim();
+  const cost = parseFloat($('#f-cost').value);
+  const market = parseFloat($('#f-market').value);
+  const qty = parseInt($('#f-qty').value) || 0;
+  if (!sku || !name || isNaN(cost) || isNaN(market)) { toast('Please fill all required fields', 'error'); return; }
+
+  if (id) {
+    const item = getItem(id);
+    Object.assign(item, { sku, name, category: $('#f-cat').value, condition: $('#f-cond').value, qty, cost, market });
+    addHistory('add', `Updated product ${name}`);
+    toast(`Updated ${name}`);
+  } else {
+    const newItem = { id: 'INV' + String(Date.now()).slice(-6), sku, name, category: $('#f-cat').value, condition: $('#f-cond').value, qty, cost, market };
+    DB.inventory.push(newItem);
+    addHistory('add', `Added product ${name} (${sku})`);
+    toast(`Added ${name}`, 'success');
+  }
+  closeModal();
+  renderInventory();
+}
+
+function adjustStock(id) {
+  const item = getItem(id);
+  openModal(`Adjust Stock: ${item.name}`, `
+    <div class="alert alert-info"><span class="alert-icon">ℹ️</span>Current quantity: <strong>${item.qty}</strong></div>
+    <div class="form-group"><label class="form-label">Adjustment (+/-)</label><input class="form-control" id="adj-qty" type="number" value="0" placeholder="e.g. +50 or -10"></div>
+    <div class="form-group"><label class="form-label">Reason</label><input class="form-control" id="adj-reason" placeholder="e.g. Received shipment, Damaged, etc."></div>
+  `, `
+    <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+    <button class="btn btn-primary" onclick="applyAdjustment('${id}')">Apply Adjustment</button>
+  `);
+}
+
+function applyAdjustment(id) {
+  const item = getItem(id);
+  const adj = parseInt($('#adj-qty').value);
+  const reason = $('#adj-reason').value || 'Manual adjustment';
+  if (isNaN(adj)) { toast('Enter a valid number', 'error'); return; }
+  const newQty = Math.max(0, item.qty + adj);
+  const type = adj >= 0 ? 'add' : 'remove';
+  addHistory(type, `Stock adjustment for ${item.name}: ${adj >= 0 ? '+' : ''}${adj} (${reason}). New qty: ${newQty}`);
+  item.qty = newQty;
+  toast(`Stock updated to ${newQty}`, 'success');
+  closeModal();
+  renderInventory();
+}
+
+function deleteInventoryItem(id) {
+  const item = getItem(id);
+  openModal('Confirm Delete', `
+    <div class="alert alert-danger"><span class="alert-icon">❌</span>Are you sure you want to delete <strong>${item.name}</strong>? This cannot be undone.</div>
+  `, `
+    <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+    <button class="btn btn-danger" onclick="confirmDelete('${id}')">Delete Product</button>
+  `);
+}
+
+function confirmDelete(id) {
+  const item = getItem(id);
+  const inUse = DB.templates.some(t => t.components.some(c => c.inventoryId === id));
+  if (inUse) { toast('Cannot delete — item is used in a box template', 'error'); closeModal(); return; }
+  DB.inventory = DB.inventory.filter(i => i.id !== id);
+  addHistory('remove', `Deleted product ${item.name}`);
+  toast(`Deleted ${item.name}`, 'warn');
+  closeModal();
+  renderInventory();
+}
+
+function exportInventoryCSV() {
+  const headers = ['SKU','Name','Category','Condition','Qty','Cost','Market'];
+  const rows = DB.inventory.map(i => [i.sku, `"${i.name}"`, i.category, i.condition, i.qty, i.cost.toFixed(2), i.market.toFixed(2)]);
+  const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+  downloadCSV(csv, 'inventory.csv');
+  toast('Inventory exported', 'success');
+}
+
+function downloadCSV(content, filename) {
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(content);
+  a.download = filename;
+  a.click();
+}
+
+// ===== BOX TEMPLATES =====
+function renderTemplates() {
+  let cards = '';
+  for (const tmpl of DB.templates) {
+    const { retail, market } = calcBoxValues(tmpl);
+    const { count, limiting } = calcBuildable(tmpl);
+    const issues = valueCompliance(tmpl);
+    const pct = Math.min(100, (count / 100) * 100);
+    const meterClass = count >= 30 ? 'meter-green' : count >= 10 ? 'meter-yellow' : 'meter-red';
+    const capClass = count >= 30 ? 'cap-high' : count >= 10 ? 'cap-med' : 'cap-low';
+    const margin = tmpl.salePrice - retail;
+    const compNames = tmpl.components.map(c => { const it = getItem(c.inventoryId); return it ? `${c.qty}x ${it.name.slice(0,22)}…` : '?'; }).slice(0,3);
+
+    cards += `
+      <div class="card" style="margin-bottom:16px;">
+        <div class="card-header">
+          <div style="display:flex;flex-direction:column;gap:6px;">
+            <div style="display:flex;align-items:center;gap:8px;">${tierRibbon(tmpl.tier)} ${statusBadge(tmpl.status)} ${issues.length ? `<span class="badge badge-red">⚠ ${issues.length} violation${issues.length>1?'s':''}</span>` : `<span class="badge badge-green">✓ Compliant</span>`}</div>
+            <div style="font-size:16px;font-weight:800;">${tmpl.name}</div>
+            <div style="font-size:11px;color:var(--text3);font-family:var(--mono);">Theme: ${tmpl.theme} · For: ${tmpl.targetCustomer}</div>
+          </div>
+          <div style="display:flex;gap:6px;align-items:flex-start;">
+            <button class="btn btn-secondary btn-sm" onclick="openBoxEditor('${tmpl.id}')">✏️ Edit</button>
+            <button class="btn btn-secondary btn-sm" onclick="viewBoxDetail('${tmpl.id}')">👁 View</button>
+            ${tmpl.status === 'draft' ? `<button class="btn btn-success btn-sm" onclick="approveBox('${tmpl.id}')">✓ Approve</button>` : ''}
+            ${tmpl.status === 'approved' ? `<button class="btn btn-primary btn-sm" onclick="activateBox('${tmpl.id}')">🚀 Activate</button>` : ''}
+          </div>
+        </div>
+        <div class="card-body">
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:16px;margin-bottom:16px;">
+            <div><div class="stat-label">Retail Value</div><div style="font-size:16px;font-weight:800;font-family:var(--mono);color:var(--teal);">${fmtMoney(retail)}</div></div>
+            <div><div class="stat-label">Market Value</div><div style="font-size:16px;font-weight:800;font-family:var(--mono);color:var(--purple);">${fmtMoney(market)}</div></div>
+            <div><div class="stat-label">Sale Price</div><div style="font-size:16px;font-weight:800;font-family:var(--mono);">${fmtMoney(tmpl.salePrice)}</div></div>
+            <div><div class="stat-label">Margin</div><div style="font-size:16px;font-weight:800;font-family:var(--mono);color:${margin>=0?'var(--green)':'var(--red)'};">${fmtMoney(margin)}</div></div>
+          </div>
+          <div style="font-size:11px;color:var(--text3);margin-bottom:8px;font-family:var(--mono);">Components: ${compNames.join(', ')}${tmpl.components.length > 3 ? ` +${tmpl.components.length-3} more` : ''}</div>
+          <div class="meter-track" style="height:10px;"><div class="meter-fill ${meterClass}" style="width:${pct}%"></div></div>
+          <div style="display:flex;justify-content:space-between;margin-top:6px;font-size:11px;color:var(--text3);font-family:var(--mono);">
+            <span>Buildable: <strong class="${capClass}" style="font-size:14px;">${count}</strong> boxes</span>
+            ${limiting && count < 100 ? `<span class="limiting-item">⚡ Limit: ${limiting.length>28?limiting.slice(0,26)+'…':limiting}</span>` : ''}
+          </div>
+          ${issues.map(iss => `<div class="alert alert-danger" style="margin-top:8px;"><span class="alert-icon">❌</span>${iss.msg}</div>`).join('')}
+        </div>
+      </div>`;
+  }
+
+  $('#topbar-actions').innerHTML = `<button class="btn btn-primary" onclick="openBoxEditor(null)">+ New Box Template</button>`;
+  $('#content').innerHTML = `
+    <div class="section-header">
+      <div><div class="section-title">All Box Templates</div><div class="section-sub">${DB.templates.length} configured</div></div>
+    </div>
+    ${cards || '<div class="empty-state"><div class="empty-icon">📦</div><div class="empty-title">No templates yet</div><div class="empty-sub">Create your first box template</div></div>'}
+  `;
+}
+
+function approveBox(id) {
+  const tmpl = getTemplate(id);
+  const issues = valueCompliance(tmpl);
+  if (issues.length) { toast('Cannot approve — fix value violations first', 'error'); return; }
+  tmpl.status = 'approved';
+  addHistory('approve', `Approved box template "${tmpl.name}"`);
+  toast(`"${tmpl.name}" approved!`, 'success');
+  renderTemplates();
+}
+
+function activateBox(id) {
+  const tmpl = getTemplate(id);
+  tmpl.status = 'active';
+  addHistory('approve', `Activated box template "${tmpl.name}"`);
+  toast(`"${tmpl.name}" is now active!`, 'success');
+  renderTemplates();
+}
+
+function viewBoxDetail(id) {
+  const tmpl = getTemplate(id);
+  const { retail, market } = calcBoxValues(tmpl);
+  const { count, limiting } = calcBuildable(tmpl);
+  const issues = valueCompliance(tmpl);
+
+  let compRows = tmpl.components.map(c => {
+    const item = getItem(c.inventoryId);
+    if (!item) return '';
+    return `<tr>
+      <td class="td-mono">${item.sku}</td>
+      <td>${item.name}</td>
+      <td class="td-mono">${c.qty}</td>
+      <td class="td-mono">${fmtMoney(item.cost * c.qty)}</td>
+      <td class="td-mono">${fmtMoney(item.market * c.qty)}</td>
+      <td><div class="stock-indicator"><div class="stock-dot stock-dot-${item.qty<=5?'red':item.qty<=20?'yellow':'green'}"></div>${item.qty}</div></td>
+    </tr>`;
+  }).join('');
+
+  openModal(`Box Detail: ${tmpl.name}`, `
+    <div style="display:flex;gap:8px;margin-bottom:16px;">${tierRibbon(tmpl.tier)} ${statusBadge(tmpl.status)}</div>
+    ${issues.map(iss => `<div class="alert alert-danger"><span class="alert-icon">❌</span>${iss.msg}</div>`).join('')}
+    ${!issues.length ? '<div class="alert alert-success"><span class="alert-icon">✅</span>All value rules satisfied.</div>' : ''}
+    <div class="sep"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+      <div class="rule-item"><div class="rule-label">Retail (Cost) Value</div><div class="rule-value" style="color:var(--teal);">${fmtMoney(retail)}</div></div>
+      <div class="rule-item"><div class="rule-label">Market Value</div><div class="rule-value" style="color:var(--purple);">${fmtMoney(market)}</div></div>
+      <div class="rule-item"><div class="rule-label">Sale Price</div><div class="rule-value">${fmtMoney(tmpl.salePrice)}</div></div>
+      <div class="rule-item"><div class="rule-label">Buildable Now</div><div class="rule-value ${count>=30?'cap-high':count>=10?'cap-med':'cap-low'}">${count} boxes</div></div>
+      <div class="rule-item"><div class="rule-label">Min Retail Rule</div><div class="rule-value">${fmtMoney(tmpl.minRetailValue)}</div></div>
+      <div class="rule-item"><div class="rule-label">Max Market Rule</div><div class="rule-value">${fmtMoney(tmpl.maxMarketValue)}</div></div>
+    </div>
+    <div class="card-title" style="margin-bottom:10px;">Components</div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>SKU</th><th>Product</th><th>Qty/Box</th><th>Retail</th><th>Market</th><th>Stock</th></tr></thead>
+        <tbody>${compRows}</tbody>
+        <tfoot>
+          <tr style="background:var(--bg3);">
+            <td colspan="3" style="font-weight:700;padding:8px 12px;">Totals</td>
+            <td class="td-mono" style="color:var(--teal);font-weight:700;">${fmtMoney(retail)}</td>
+            <td class="td-mono" style="color:var(--purple);font-weight:700;">${fmtMoney(market)}</td>
+            <td></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+    ${limiting ? `<div class="alert alert-warn" style="margin-top:12px;"><span class="alert-icon">⚡</span>Limiting component: <strong>${limiting}</strong></div>` : ''}
+  `, `
+    <button class="btn btn-ghost" onclick="closeModal()">Close</button>
+    <button class="btn btn-secondary" onclick="exportPackingList('${id}')">↓ Packing List</button>
+    ${tmpl.status === 'draft' ? `<button class="btn btn-success" onclick="closeModal();approveBox('${id}')">✓ Approve</button>` : ''}
+  `);
+}
+
+function exportPackingList(id) {
+  const tmpl = getTemplate(id);
+  let csv = `Box Template: ${tmpl.name}\nTheme: ${tmpl.theme}\nTier: ${tmpl.tier}\n\nSKU,Product,Qty Per Box,Cost Per Box,Market Per Box\n`;
+  for (const c of tmpl.components) {
+    const item = getItem(c.inventoryId);
+    if (item) csv += `${item.sku},"${item.name}",${c.qty},${(item.cost*c.qty).toFixed(2)},${(item.market*c.qty).toFixed(2)}\n`;
+  }
+  const { retail, market } = calcBoxValues(tmpl);
+  csv += `\nTotal Retail Value,${retail.toFixed(2)}\nTotal Market Value,${market.toFixed(2)}\nSale Price,${tmpl.salePrice.toFixed(2)}\n`;
+  downloadCSV(csv, `packing-list-${tmpl.id}.csv`);
+  toast('Packing list exported!', 'success');
+}
+
+// ===== BOX EDITOR =====
+function openBoxEditor(id) {
+  const tmpl = id ? getTemplate(id) : null;
+  let compRows = '';
+  const renderCompRows = () => {
+    const container = document.getElementById('comp-list');
+    if (!container) return;
+    if (!window._editComps.length) { container.innerHTML = '<div style="text-align:center;color:var(--text3);font-size:12px;padding:20px;">No components added yet</div>'; return; }
+    container.innerHTML = window._editComps.map((c, idx) => {
+      const item = getItem(c.inventoryId);
+      if (!item) return '';
+      const lineRetail = (item.cost * c.qty).toFixed(2);
+      const lineMarket = (item.market * c.qty).toFixed(2);
+      return `<div class="component-row">
+        <div class="comp-name">${item.name}<br><span style="font-size:10px;color:var(--text3);font-family:var(--mono);">${item.sku}</span></div>
+        <input class="form-control comp-qty" type="number" min="1" value="${c.qty}" style="width:60px;" onchange="updateCompQty(${idx}, this.value)">
+        <div class="comp-val">${fmtMoney(parseFloat(lineRetail))} / ${fmtMoney(parseFloat(lineMarket))}</div>
+        <button class="comp-remove" onclick="removeComp(${idx})">✕</button>
+      </div>`;
+    }).join('');
+    updateBoxCalc();
+  };
+
+  window._editComps = tmpl ? tmpl.components.map(c => ({...c})) : [];
+  window._renderCompRows = renderCompRows;
+
+  const invOptions = DB.inventory.map(i => `<option value="${i.id}">${i.name} (${i.sku})</option>`).join('');
+
+  openModal(tmpl ? `Edit: ${tmpl.name}` : 'New Box Template', `
+    <div class="tabs" style="margin-bottom:16px;" id="editor-tabs">
+      <button class="tab active" onclick="switchEditorTab('details')">Details</button>
+      <button class="tab" onclick="switchEditorTab('components')">Components</button>
+      <button class="tab" onclick="switchEditorTab('pricing')">Pricing & Rules</button>
+    </div>
+    <div id="editor-details">
+      <div class="form-row form-row-2">
+        <div class="form-group"><label class="form-label">Box Name *</label><input class="form-control" id="be-name" value="${tmpl?.name||''}" placeholder="e.g. Pokémon Collector Bundle"></div>
+        <div class="form-group"><label class="form-label">Theme</label><input class="form-control" id="be-theme" value="${tmpl?.theme||''}" placeholder="e.g. Pokémon, MTG, Multi-Game"></div>
+      </div>
+      <div class="form-row form-row-2">
+        <div class="form-group"><label class="form-label">Tier</label>
+          <select class="form-control" id="be-tier">
+            ${['bronze','silver','gold','platinum'].map(t=>`<option value="${t}" ${tmpl?.tier===t?'selected':''}>${t.charAt(0).toUpperCase()+t.slice(1)}</option>`).join('')}
+          </select>
+        </div>
+        <div class="form-group"><label class="form-label">Target Customer</label><input class="form-control" id="be-target" value="${tmpl?.targetCustomer||''}" placeholder="e.g. New players, Collectors"></div>
+      </div>
+    </div>
+    <div id="editor-components" style="display:none;">
+      <div class="form-row" style="grid-template-columns:1fr auto;margin-bottom:12px;align-items:flex-end;">
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">Add Component</label>
+          <select class="form-control" id="comp-select">${invOptions}</select>
+        </div>
+        <button class="btn btn-secondary" onclick="addComp()">+ Add</button>
+      </div>
+      <div class="component-list scroll-panel" id="comp-list" style="min-height:80px;"></div>
+      <div style="margin-top:12px;padding:12px;background:var(--bg3);border-radius:var(--radius);" id="box-calc">
+        <div style="display:flex;justify-content:space-between;font-size:12px;font-family:var(--mono);">
+          <span>Retail: <strong id="calc-retail">$0.00</strong></span>
+          <span>Market: <strong id="calc-market">$0.00</strong></span>
+          <span>Buildable: <strong id="calc-buildable">0</strong></span>
+        </div>
+      </div>
+    </div>
+    <div id="editor-pricing" style="display:none;">
+      <div class="form-row form-row-2">
+        <div class="form-group"><label class="form-label">Sale Price</label><input class="form-control" id="be-sale" type="number" min="0" step="0.01" value="${tmpl?.salePrice||''}" placeholder="0.00"></div>
+        <div class="form-group"></div>
+      </div>
+      <div class="sep"></div>
+      <div style="font-size:12px;font-weight:700;margin-bottom:10px;">Value Rules (override defaults)</div>
+      <div class="form-row form-row-2">
+        <div class="form-group">
+          <label class="form-label">Min Retail Value</label>
+          <input class="form-control" id="be-minret" type="number" min="0" step="0.01" value="${tmpl?.minRetailValue||DB.rules.minRetailValueDefault}" placeholder="${DB.rules.minRetailValueDefault}">
+          <div class="form-hint">Box components must cost at least this much</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Max Market Value</label>
+          <input class="form-control" id="be-maxmkt" type="number" min="0" step="0.01" value="${tmpl?.maxMarketValue||DB.rules.maxMarketValueDefault}" placeholder="${DB.rules.maxMarketValueDefault}">
+          <div class="form-hint">Market value must not exceed this</div>
+        </div>
+      </div>
+      <div id="compliance-preview"></div>
+    </div>
+  `, `
+    <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+    <button class="btn btn-primary" onclick="saveBoxTemplate('${id||''}')">💾 Save Template</button>
+  `);
+
+  setTimeout(() => { renderCompRows(); updateBoxCalc(); }, 50);
+}
+
+window.switchEditorTab = function(tab) {
+  ['details','components','pricing'].forEach(t => {
+    document.getElementById(`editor-${t}`).style.display = t === tab ? '' : 'none';
+  });
+  document.querySelectorAll('#editor-tabs .tab').forEach((btn, i) => {
+    btn.classList.toggle('active', ['details','components','pricing'][i] === tab);
+  });
+  if (tab === 'components' && window._renderCompRows) window._renderCompRows();
+  if (tab === 'pricing') updateCompliancePreview();
+};
+
+window.addComp = function() {
+  const sel = document.getElementById('comp-select');
+  const invId = sel.value;
+  const exists = window._editComps.find(c => c.inventoryId === invId);
+  if (exists) { toast('Component already added', 'warn'); return; }
+  window._editComps.push({ inventoryId: invId, qty: 1 });
+  window._renderCompRows();
+};
+
+window.removeComp = function(idx) {
+  window._editComps.splice(idx, 1);
+  window._renderCompRows();
+};
+
+window.updateCompQty = function(idx, val) {
+  window._editComps[idx].qty = Math.max(1, parseInt(val) || 1);
+  updateBoxCalc();
+};
+
+function updateBoxCalc() {
+  const tmpComps = window._editComps;
+  let retail = 0, market = 0, buildable = Infinity;
+  for (const c of tmpComps) {
+    const item = getItem(c.inventoryId);
+    if (!item) continue;
+    retail += item.cost * c.qty;
+    market += item.market * c.qty;
+    const ratio = Math.floor(item.qty / c.qty);
+    if (ratio < buildable) buildable = ratio;
+  }
+  if (buildable === Infinity) buildable = 0;
+  const cr = document.getElementById('calc-retail');
+  const cm = document.getElementById('calc-market');
+  const cb = document.getElementById('calc-buildable');
+  if (cr) cr.textContent = fmtMoney(retail);
+  if (cm) cm.textContent = fmtMoney(market);
+  if (cb) cb.textContent = buildable;
+}
+
+function updateCompliancePreview() {
+  const minRet = parseFloat(document.getElementById('be-minret')?.value) || 0;
+  const maxMkt = parseFloat(document.getElementById('be-maxmkt')?.value) || 9999;
+  let retail = 0, market = 0;
+  for (const c of window._editComps) {
+    const item = getItem(c.inventoryId);
+    if (!item) continue;
+    retail += item.cost * c.qty;
+    market += item.market * c.qty;
+  }
+  const preview = document.getElementById('compliance-preview');
+  if (!preview) return;
+  let html = '';
+  if (retail < minRet) html += `<div class="alert alert-danger"><span class="alert-icon">❌</span>Retail ${fmtMoney(retail)} is below minimum ${fmtMoney(minRet)}</div>`;
+  else html += `<div class="alert alert-success"><span class="alert-icon">✅</span>Retail ${fmtMoney(retail)} ≥ minimum ${fmtMoney(minRet)}</div>`;
+  if (market > maxMkt) html += `<div class="alert alert-danger"><span class="alert-icon">❌</span>Market ${fmtMoney(market)} exceeds maximum ${fmtMoney(maxMkt)}</div>`;
+  else html += `<div class="alert alert-success"><span class="alert-icon">✅</span>Market ${fmtMoney(market)} ≤ maximum ${fmtMoney(maxMkt)}</div>`;
+  preview.innerHTML = html;
+}
+
+function saveBoxTemplate(id) {
+  const name = document.getElementById('be-name')?.value.trim();
+  if (!name) { toast('Box name required', 'error'); return; }
+  const salePrice = parseFloat(document.getElementById('be-sale')?.value) || 0;
+  const minRetailValue = parseFloat(document.getElementById('be-minret')?.value) || DB.rules.minRetailValueDefault;
+  const maxMarketValue = parseFloat(document.getElementById('be-maxmkt')?.value) || DB.rules.maxMarketValueDefault;
+
+  const data = {
+    name,
+    theme: document.getElementById('be-theme')?.value || '',
+    tier: document.getElementById('be-tier')?.value || 'silver',
+    targetCustomer: document.getElementById('be-target')?.value || '',
+    components: window._editComps,
+    salePrice,
+    minRetailValue,
+    maxMarketValue,
+  };
+
+  if (id) {
+    Object.assign(getTemplate(id), data);
+    addHistory('approve', `Updated box template "${name}"`);
+    toast(`Template updated!`, 'success');
+  } else {
+    DB.templates.push({ id: 'BOX' + String(Date.now()).slice(-6), status: 'draft', ...data });
+    addHistory('add', `Created new box template "${name}"`);
+    toast(`Box template "${name}" created!`, 'success');
+  }
+  closeModal();
+  renderTemplates();
+}
+
+// ===== PACKING =====
+function renderPacking() {
+  const activeTmpls = DB.templates.filter(t => t.status === 'active' || t.status === 'approved');
+
+  let rows = activeTmpls.map(tmpl => {
+    const { count } = calcBuildable(tmpl);
+    const { retail, market } = calcBoxValues(tmpl);
+    return `
+      <tr>
+        <td style="font-weight:700;">${tmpl.name}</td>
+        <td>${tierRibbon(tmpl.tier)}</td>
+        <td style="font-family:var(--mono);">${fmtMoney(retail)}</td>
+        <td style="font-family:var(--mono);">${fmtMoney(market)}</td>
+        <td><span class="${count>=30?'cap-high':count>=10?'cap-med':'cap-low'}" style="font-family:var(--mono);font-weight:700;">${count}</span></td>
+        <td>
+          <div class="pack-control">
+            <input class="pack-input" type="number" id="pack-qty-${tmpl.id}" min="1" max="${count}" value="1" ${count===0?'disabled':''}>
+            <button class="btn btn-primary btn-sm" onclick="packBoxes('${tmpl.id}')" ${count===0?'disabled':''}>Pack</button>
+          </div>
+        </td>
+      </tr>`;
+  }).join('');
+
+  $('#topbar-actions').innerHTML = '';
+  $('#content').innerHTML = `
+    <div class="alert alert-info"><span class="alert-icon">📦</span>Packing boxes deducts inventory automatically. Only approved or active templates can be packed.</div>
+    <div class="card">
+      <div class="card-header"><div class="card-title">Pack Boxes</div></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Box Template</th><th>Tier</th><th>Retail Value</th><th>Market Value</th><th>Buildable</th><th>Pack Quantity</th></tr></thead>
+          <tbody>${rows || '<tr><td colspan="6"><div class="empty-state"><div class="empty-icon">📬</div><div class="empty-title">No active or approved box templates</div></div></td></tr>'}</tbody>
+        </table>
+      </div>
+    </div>
+    <div class="sep"></div>
+    <div class="section-title" style="margin-bottom:14px;">Recent Packing Activity</div>
+    <div class="log-list">
+      ${DB.history.filter(h => h.type === 'pack').slice(0,5).map(h => `
+        <div class="log-item log-pack">
+          <div class="log-time">${new Date(h.ts).toLocaleString()}</div>
+          <div class="log-msg">${h.msg}</div>
+        </div>`).join('') || '<div style="color:var(--text3);font-size:12px;font-family:var(--mono);">No packing history yet.</div>'}
+    </div>
+  `;
+}
+
+function packBoxes(id) {
+  const tmpl = getTemplate(id);
+  const qtyInput = document.getElementById(`pack-qty-${id}`);
+  const qty = parseInt(qtyInput?.value) || 1;
+  const { count } = calcBuildable(tmpl);
+  if (qty > count) { toast(`Only ${count} boxes can be built right now`, 'error'); return; }
+  if (qty < 1) { toast('Enter a valid quantity', 'error'); return; }
+
+  // Deduct inventory
+  for (const c of tmpl.components) {
+    const item = getItem(c.inventoryId);
+    if (item) item.qty = Math.max(0, item.qty - (c.qty * qty));
+  }
+  addHistory('pack', `Packed ${qty}x "${tmpl.name}" — inventory deducted`);
+  toast(`✅ Packed ${qty} × "${tmpl.name}"`, 'success');
+  renderPacking();
+}
+
+// ===== RULES =====
+function renderRules() {
+  $('#topbar-actions').innerHTML = '';
+  $('#content').innerHTML = `
+    <div class="grid-2" style="gap:24px;align-items:start;">
+      <div class="card">
+        <div class="card-header"><div class="card-title">⚙️ Global Value Rules</div></div>
+        <div class="card-body">
+          <div class="form-group">
+            <label class="form-label">Default Min Retail Value</label>
+            <input class="form-control" id="r-minret" type="number" step="0.01" value="${DB.rules.minRetailValueDefault}">
+            <div class="form-hint">Applied to templates without custom rules</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Default Max Market Value</label>
+            <input class="form-control" id="r-maxmkt" type="number" step="0.01" value="${DB.rules.maxMarketValueDefault}">
+            <div class="form-hint">Boxes exceeding this cannot be approved</div>
+          </div>
+          <button class="btn btn-primary" onclick="saveRules()">Save Rules</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="card-title">📦 Stock Thresholds</div></div>
+        <div class="card-body">
+          <div class="form-group">
+            <label class="form-label">Low Stock Warning Level</label>
+            <input class="form-control" id="r-lowstock" type="number" min="1" value="${DB.rules.lowStockThreshold}">
+            <div class="form-hint">Items at or below this show a yellow warning</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Critical Stock Level</label>
+            <input class="form-control" id="r-critical" type="number" min="0" value="${DB.rules.criticalStockThreshold}">
+            <div class="form-hint">Items at or below this show a red alert</div>
+          </div>
+          <button class="btn btn-primary" onclick="saveRules()">Save Rules</button>
+        </div>
+      </div>
+    </div>
+    <div class="sep"></div>
+    <div class="card">
+      <div class="card-header"><div class="card-title">📤 Export Tools</div></div>
+      <div class="card-body">
+        <div class="export-options">
+          <button class="btn btn-secondary" onclick="exportInventoryCSV()">↓ Full Inventory CSV</button>
+          <button class="btn btn-secondary" onclick="exportAllTemplates()">↓ All Box Templates CSV</button>
+          <button class="btn btn-secondary" onclick="exportHistoryCSV()">↓ History Log CSV</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function saveRules() {
+  DB.rules.minRetailValueDefault = parseFloat($('#r-minret').value) || 15;
+  DB.rules.maxMarketValueDefault = parseFloat($('#r-maxmkt').value) || 100;
+  DB.rules.lowStockThreshold = parseInt($('#r-lowstock').value) || 20;
+  DB.rules.criticalStockThreshold = parseInt($('#r-critical').value) || 5;
+  toast('Rules saved!', 'success');
+}
+
+function exportAllTemplates() {
+  let csv = 'ID,Name,Theme,Tier,Status,Components,SalePrice,MinRetail,MaxMarket,BuildableNow\n';
+  for (const t of DB.templates) {
+    const { count } = calcBuildable(t);
+    const comps = t.components.map(c => { const it = getItem(c.inventoryId); return it ? `${c.qty}x ${it.sku}` : '?'; }).join('; ');
+    csv += `${t.id},"${t.name}","${t.theme}",${t.tier},${t.status},"${comps}",${t.salePrice.toFixed(2)},${t.minRetailValue.toFixed(2)},${t.maxMarketValue.toFixed(2)},${count}\n`;
+  }
+  downloadCSV(csv, 'box-templates.csv');
+  toast('Templates exported', 'success');
+}
+
+function exportHistoryCSV() {
+  let csv = 'Timestamp,Type,Message\n';
+  DB.history.forEach(h => { csv += `"${new Date(h.ts).toLocaleString()}",${h.type},"${h.msg}"\n`; });
+  downloadCSV(csv, 'history-log.csv');
+  toast('History exported', 'success');
+}
+
+// ===== HISTORY =====
+function renderHistory() {
+  const typeMap = { add: 'log-add', remove: 'log-remove', approve: 'log-approve', pack: 'log-pack' };
+  const iconMap = { add: '➕', remove: '➖', approve: '✅', pack: '📦' };
+
+  $('#topbar-actions').innerHTML = `<button class="btn btn-secondary btn-sm" onclick="exportHistoryCSV()">↓ Export CSV</button>`;
+  $('#content').innerHTML = `
+    <div class="card">
+      <div class="card-header"><div class="card-title">Audit History</div><div style="font-size:11px;color:var(--text3);font-family:var(--mono);">${DB.history.length} entries</div></div>
+      <div class="card-body">
+        <div class="log-list">
+          ${DB.history.map(h => `
+            <div class="log-item ${typeMap[h.type]||''}">
+              <div style="font-size:16px;">${iconMap[h.type]||'🔸'}</div>
+              <div style="flex:1;">
+                <div class="log-msg">${h.msg}</div>
+                <div class="log-time">${new Date(h.ts).toLocaleString()}</div>
+              </div>
+            </div>`).join('') || '<div class="empty-state"><div class="empty-icon">🕐</div><div class="empty-title">No history yet</div></div>'}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// ===== REPORTS =====
+function renderReports() {
+  // Calculate some reporting data
+  const totalInventoryRetail = DB.inventory.reduce((s,i) => s+i.cost*i.qty, 0);
+  const totalInventoryMarket = DB.inventory.reduce((s,i) => s+i.market*i.qty, 0);
+  const portfolioGain = totalInventoryMarket - totalInventoryRetail;
+  const portfolioGainPct = ((portfolioGain / totalInventoryRetail) * 100).toFixed(1);
+
+  // Box margins
+  const boxMarginRows = DB.templates.map(t => {
+    const { retail, market } = calcBoxValues(t);
+    const { count } = calcBuildable(t);
+    const margin = t.salePrice - retail;
+    const marginPct = retail > 0 ? ((margin / retail) * 100).toFixed(1) : '0.0';
+    return `<tr>
+      <td style="font-weight:600;">${t.name}</td>
+      <td>${tierRibbon(t.tier)}</td>
+      <td class="td-mono">${fmtMoney(retail)}</td>
+      <td class="td-mono" style="color:var(--purple);">${fmtMoney(market)}</td>
+      <td class="td-mono">${fmtMoney(t.salePrice)}</td>
+      <td class="td-mono" style="color:${margin>=0?'var(--green)':'var(--red)'};">${fmtMoney(margin)} (${marginPct}%)</td>
+      <td class="td-mono ${count>=30?'cap-high':count>=10?'cap-med':'cap-low'}">${count}</td>
+    </tr>`;
+  }).join('');
+
+  // Category breakdown
+  const byCategory = {};
+  DB.inventory.forEach(i => {
+    if (!byCategory[i.category]) byCategory[i.category] = { retail: 0, market: 0, qty: 0, skus: 0 };
+    byCategory[i.category].retail += i.cost * i.qty;
+    byCategory[i.category].market += i.market * i.qty;
+    byCategory[i.category].qty += i.qty;
+    byCategory[i.category].skus++;
+  });
+
+  const catRows = Object.entries(byCategory).map(([cat, data]) => `
+    <tr>
+      <td style="font-weight:600;">${cat}</td>
+      <td class="td-mono">${data.skus}</td>
+      <td class="td-mono">${data.qty.toLocaleString()}</td>
+      <td class="td-mono">${fmtMoney(data.retail)}</td>
+      <td class="td-mono" style="color:var(--purple);">${fmtMoney(data.market)}</td>
+    </tr>`).join('');
+
+  // Bar chart data
+  const maxQty = Math.max(...DB.inventory.map(i => i.qty));
+  const topItems = [...DB.inventory].sort((a,b) => b.qty - a.qty).slice(0, 8);
+  const bars = topItems.map((item, i) => {
+    const h = Math.max(10, Math.round((item.qty / maxQty) * 108));
+    const colors = ['var(--accent)','var(--teal)','var(--purple)','var(--yellow)','var(--green)','#ff9a6c','#6db4ff','#f97fb8'];
+    return `<div class="bar-chart-bar" style="height:${h}px;background:${colors[i%colors.length]};border-radius:4px 4px 0 0;" title="${item.name}: ${item.qty} units"></div>`;
+  }).join('');
+
+  $('#topbar-actions').innerHTML = `<button class="btn btn-secondary btn-sm" onclick="exportAllTemplates()">↓ Export Report</button>`;
+  $('#content').innerHTML = `
+    <div class="stats-grid">
+      <div class="stat-card teal"><div class="stat-icon">💼</div><div class="stat-label">Total Inventory Cost</div><div class="stat-value">${fmtMoney(totalInventoryRetail)}</div><div class="stat-sub">Purchase cost basis</div></div>
+      <div class="stat-card purple"><div class="stat-icon">📈</div><div class="stat-label">Market Portfolio</div><div class="stat-value">${fmtMoney(totalInventoryMarket)}</div><div class="stat-sub">TCGplayer estimated</div></div>
+      <div class="stat-card ${parseFloat(portfolioGainPct) >= 0 ? 'green' : 'red'}"><div class="stat-icon">💹</div><div class="stat-label">Unrealized Gain</div><div class="stat-value">${fmtMoney(portfolioGain)}</div><div class="stat-sub">${portfolioGainPct}% over cost</div></div>
+    </div>
+
+    <div class="grid-2" style="margin-bottom:24px;">
+      <div class="card">
+        <div class="card-header"><div class="card-title">Top SKUs by Stock Quantity</div></div>
+        <div class="card-body" style="padding-bottom:0;">
+          <div class="chart-placeholder">${bars}</div>
+          <div style="font-size:10px;color:var(--text3);font-family:var(--mono);padding:8px 0;text-align:center;">Hover bars for details</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="card-title">Category Breakdown</div></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Category</th><th>SKUs</th><th>Total Qty</th><th>Cost Value</th><th>Market Value</th></tr></thead>
+            <tbody>${catRows}</tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><div class="card-title">Box Margin Analysis</div></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Box Template</th><th>Tier</th><th>Retail (Cost)</th><th>Market</th><th>Sale Price</th><th>Margin</th><th>Buildable</th></tr></thead>
+          <tbody>${boxMarginRows}</tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+
+// ===== INIT =====
+navigate('dashboard');
+</script>
+</body>
+</html>
